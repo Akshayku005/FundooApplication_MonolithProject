@@ -14,7 +14,6 @@ import com.brigdelabz.FundooApp.util.TokenUtility;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -307,18 +306,8 @@ public class NotesService implements INotesService {
                     labelModel.get().setUserId(userId);
                     labelRepository.save(labelModel.get());
                     return notes.get();
-//                    Notes newNotes=new Notes(notes.get());
-//                    newNotes.setLabelList((List<LabelModel>) labelModel.get());
-//                    notesRepository.save(newNotes);
-//                    notesList.add(newNotes);
-//
-//                    LabelModel newLabel=new LabelModel(labelModel.get());
-//                    newLabel.setNotes((List<Notes>) notes.get());
-//                    labelRepository.save(newLabel);
-//                    return newNotes;
                 }
                 throw new UserException(HttpStatus.FOUND, "label not found");
-
             }
             throw new UserException(HttpStatus.FOUND, "User Id and notes user Id not match");
         }
@@ -337,8 +326,7 @@ public class NotesService implements INotesService {
                 if (isUserEmailPresent.isPresent()) {
                     collaboratorList.add(collaborator);
                     isNoteAndUserId.get().setCollaborator(collaboratorList);
-                    Notes newNotes = new Notes(isNoteAndUserId.get());
-                    notesRepository.save(newNotes);
+                    notesRepository.save(isNoteAndUserId.get());
                     return isNoteAndUserId.get();
                 }
                 throw new UserException(HttpStatus.FOUND, "Collaborator email Id not found in DB");
@@ -347,6 +335,23 @@ public class NotesService implements INotesService {
         }
         throw new UserException(HttpStatus.FOUND, "Token not found");
     }
+@Override
+    public Optional<Notes> readNotesByCollaborator(Long notesId, String email) {
+        Optional<Notes> isNotesPresent = notesRepository.findById(notesId);
+        if (isNotesPresent.isPresent()) {
+            Optional<User> user = userRepository.findByEmail(email);
+            List<String> collaborator = isNotesPresent.get().getCollaborator();
+            for (String list : collaborator) {
+                if (list.equals(email)) {
+                    System.out.println(list);
+                    return isNotesPresent;
+                }
+                throw new UserException(HttpStatus.FOUND, "given email not collaboratored");
+            }
+        }
+        throw new UserException(HttpStatus.FOUND, "notes not present");
+    }
+
 
     @Override
     public Notes setRemainderTime(String remainderTime, String token, Long notesId) {
@@ -360,11 +365,13 @@ public class NotesService implements INotesService {
                 LocalDate remainder = LocalDate.parse(remainderTime, dateTimeFormatter);
                 if (remainder.isBefore(today)) {
                     throw new UserException(HttpStatus.FOUND, "invalid remainder time");
+                } else {
+                    isNotesPresent.get().setRemindertime(remainderTime);
+                    notesRepository.save(isNotesPresent.get());
+                    return isNotesPresent.get();
                 }
-                isNotesPresent.get().setRemindertime(remainderTime);
-                notesRepository.save(isNotesPresent.get());
-                return isNotesPresent.get();
             }
+            throw new UserException(HttpStatus.FOUND, "notes not present with this NotesId");
         }
         throw new UserException(HttpStatus.FOUND, "Invalid token");
     }

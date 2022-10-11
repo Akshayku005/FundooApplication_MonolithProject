@@ -44,5 +44,8 @@ public interface INotesService {
 
     Notes addCollaborator(Long notesId, String collaborator, String token);
 
+
+    Optional<Notes> readNotesByCollaborator(Long notesId, String email);
+
     Notes setRemainderTime(String remainderTime, String token, Long notesId);
 }

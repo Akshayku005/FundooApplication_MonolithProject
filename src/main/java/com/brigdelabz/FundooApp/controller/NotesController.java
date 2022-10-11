@@ -257,4 +257,10 @@ public class NotesController {
 		ResponseDTO response = new ResponseDTO("Remainder time set sucessfully",  notesModel);
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
+	@GetMapping("/getcollaboratedmails")
+	public ResponseEntity<ResponseDTO> readNotesByCollaborators(@RequestHeader Long notesId, @RequestHeader String email) {
+		Optional<Notes> notesModel = notesService.readNotesByCollaborator(notesId,email);
+		ResponseDTO response = new ResponseDTO("collaborated mails", notesModel);
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
 }
